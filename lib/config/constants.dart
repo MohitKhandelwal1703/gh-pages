@@ -64,7 +64,7 @@ class AppConstants {
       "technologies": ["Flutter", "Android", "Java","Cursor-AI","Firebase","Kotlin"]
     },
     {
-      "company": "Company 2",
+      "company": "Company Innovana
       "position": "Mobile Developer",
       "duration": "2018 - 2020",
       "description": "Key responsibilities and achievements",
