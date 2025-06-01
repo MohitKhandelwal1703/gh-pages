@@ -3,8 +3,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../config/theme.dart';
 import '../config/constants.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:io' show Platform;
 
 class ContactScreen extends StatefulWidget {
   const ContactScreen({super.key});
@@ -17,12 +21,16 @@ class _ContactScreenState extends State<ContactScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _messageController = TextEditingController();
+  bool _isSubmitting = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
     _nameController.dispose();
     _emailController.dispose();
+    _phoneController.dispose();
     _messageController.dispose();
     super.dispose();
   }
@@ -30,6 +38,69 @@ class _ContactScreenState extends State<ContactScreen> {
   Future<void> _launchUrl(String url) async {
     if (!await launchUrl(Uri.parse(url))) {
       throw Exception('Could not launch $url');
+    }
+  }
+
+  Future<void> _submitForm() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isSubmitting = true;
+        _errorMessage = null;
+      });
+
+      try {
+        // Determine platform
+        String platform;
+        if (kIsWeb) {
+          platform = 'web';
+        } else if (Platform.isAndroid) {
+          platform = 'android';
+        } else if (Platform.isIOS) {
+          platform = 'ios';
+        } else {
+          platform = 'other';
+        }
+
+        // Send data to Firestore
+        await FirebaseFirestore.instance.collection('contacts').add({
+          'name': _nameController.text,
+          'email': _emailController.text,
+          'phone': _phoneController.text,
+          'message': _messageController.text,
+          'timestamp': FieldValue.serverTimestamp(),
+          'platform': platform,
+          'iscoming': platform,
+        });
+
+        // Clear form after successful submission
+        _nameController.clear();
+        _emailController.clear();
+        _phoneController.clear();
+        _messageController.clear();
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Message sent successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } catch (e) {
+        setState(() {
+          _errorMessage = 'Failed to send message: $e';
+        });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(_errorMessage ?? 'An error occurred'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      } finally {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
 
@@ -69,6 +140,21 @@ class _ContactScreenState extends State<ContactScreen> {
 
                       const SizedBox(height: 24),
 
+                      if (_errorMessage != null)
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red),
+                          ),
+                          child: Text(
+                            _errorMessage!,
+                            style: const TextStyle(color: Colors.red),
+                          ),
+                        ),
+
                       Form(
                         key: _formKey,
                         child: Column(
@@ -84,7 +170,26 @@ class _ContactScreenState extends State<ContactScreen> {
                               controller: _emailController,
                               label: 'Email',
                               icon: Icons.email,
+                              keyboardType: TextInputType.emailAddress,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your email';
+                                }
+                                final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                                if (!emailRegex.hasMatch(value)) {
+                                  return 'Please enter a valid email';
+                                }
+                                return null;
+                              },
                               delay: 400,
+                            ),
+                            const SizedBox(height: 16),
+                            _ContactTextField(
+                              controller: _phoneController,
+                              label: 'Phone Number',
+                              icon: Icons.phone,
+                              keyboardType: TextInputType.phone,
+                              delay: 500,
                             ),
                             const SizedBox(height: 16),
                             _ContactTextField(
@@ -98,17 +203,30 @@ class _ContactScreenState extends State<ContactScreen> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    // TODO: Implement form submission
-                                  }
-                                },
+                                onPressed: _isSubmitting ? null : _submitForm,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppTheme.secondaryColor,
                                   foregroundColor: AppTheme.backgroundColor,
                                   padding: const EdgeInsets.symmetric(vertical: 16),
+                                  disabledBackgroundColor: AppTheme.secondaryColor.withOpacity(0.5),
                                 ),
-                                child: const Text('Send Message'),
+                                child: _isSubmitting
+                                    ? const Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: CircularProgressIndicator(
+                                              color: AppTheme.backgroundColor,
+                                              strokeWidth: 2,
+                                            ),
+                                          ),
+                                          SizedBox(width: 12),
+                                          Text('Sending...'),
+                                        ],
+                                      )
+                                    : const Text('Send Message'),
                               ).animate().fadeIn(duration: 600.ms, delay: 800.ms),
                             ),
                           ],
@@ -199,6 +317,8 @@ class _ContactTextField extends StatelessWidget {
   final IconData icon;
   final int maxLines;
   final int delay;
+  final TextInputType keyboardType;
+  final String? Function(String?)? validator;
 
   const _ContactTextField({
     required this.controller,
@@ -206,6 +326,8 @@ class _ContactTextField extends StatelessWidget {
     required this.icon,
     this.maxLines = 1,
     required this.delay,
+    this.keyboardType = TextInputType.text,
+    this.validator,
   });
 
   @override
@@ -213,6 +335,7 @@ class _ContactTextField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
+      keyboardType: keyboardType,
       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
             color: AppTheme.textColor,
           ),
@@ -241,7 +364,7 @@ class _ContactTextField extends StatelessWidget {
           color: AppTheme.secondaryColor.withOpacity(0.8),
         ),
       ),
-      validator: (value) {
+      validator: validator ?? (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter your $label';
         }

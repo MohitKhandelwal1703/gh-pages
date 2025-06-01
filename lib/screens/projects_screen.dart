@@ -46,9 +46,12 @@ class ProjectsScreen extends StatelessWidget {
                             title: project['title'] as String,
                             description: project['description'] as String,
                             image: project['image'] as String,
-                            technologies: List<String>.from(project['technologies'] as List),
+                            technologies: List<String>.from(
+                                project['technologies'] as List),
                             playStoreUrl: project['playStoreUrl'] as String,
                             githubUrl: project['githubUrl'] as String,
+                            features:
+                                List<String>.from(project['Features'] as List),
                           ).animate().fadeIn(
                                 duration: 600.ms,
                                 delay: Duration(milliseconds: 200 * index),
@@ -63,7 +66,7 @@ class ProjectsScreen extends StatelessWidget {
                         crossAxisExtent: 350,
                         mainAxisSpacing: 24,
                         crossAxisSpacing: 24,
-                        childAspectRatio: 0.7,
+                        childAspectRatio: 0.85,
                       ),
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -74,9 +77,12 @@ class ProjectsScreen extends StatelessWidget {
                           title: project['title'] as String,
                           description: project['description'] as String,
                           image: project['image'] as String,
-                          technologies: List<String>.from(project['technologies'] as List),
+                          technologies: List<String>.from(
+                              project['technologies'] as List),
                           playStoreUrl: project['playStoreUrl'] as String,
                           githubUrl: project['githubUrl'] as String,
+                          features:
+                              List<String>.from(project['Features'] as List),
                         ).animate().fadeIn(
                               duration: 600.ms,
                               delay: Duration(milliseconds: 200 * index),
@@ -92,4 +98,4 @@ class ProjectsScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}

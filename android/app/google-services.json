@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "13377596915",
+    "project_id": "myportfolio-2eae0",
+    "storage_bucket": "myportfolio-2eae0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:13377596915:android:93c6cf2c0c5ef7fc18f686",
+        "android_client_info": {
+          "package_name": "com.mohit.career.portfolio"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZZBe9lqShMYj7ixaaUeEtcM56VvFVOxY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

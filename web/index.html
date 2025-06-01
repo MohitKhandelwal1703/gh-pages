@@ -36,6 +36,23 @@
   <title>Mohit Khandelwal | Senior Mobile Developer</title>
   <link rel="manifest" href="manifest.json">
   
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCZZBe9lqShMYj7ixaaUeEtcM56VvFVOxY",
+      authDomain: "myportfolio-2eae0.firebaseapp.com",
+      projectId: "myportfolio-2eae0",
+      storageBucket: "myportfolio-2eae0.firebasestorage.app",
+      messagingSenderId: "13377596915",
+      appId: "1:13377596915:web:93c6cf2c0c5ef7fc18f686"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
+  
   <style>
     body {
       background-color: #0A192F;
@@ -77,6 +94,13 @@
       }
     }
   </style>
+
+  <script>
+    // The value below is injected by flutter build, do not touch.
+    const serviceWorkerVersion = null;
+  </script>
+  <!-- This script adds the flutter initialization JS code -->
+  <script src="flutter.js" defer></script>
 </head>
 <body>
   <div id="loading" class="loading">
@@ -91,9 +115,20 @@
         loadingIndicator.remove();
       }
     });
+    
+    window.addEventListener('load', function(ev) {
+      // Download main.dart.js
+      _flutter.loader.loadEntrypoint({
+        serviceWorker: {
+          serviceWorkerVersion: serviceWorkerVersion,
+        },
+        onEntrypointLoaded: function(engineInitializer) {
+          engineInitializer.initializeEngine().then(function(appRunner) {
+            appRunner.runApp();
+          });
+        }
+      });
+    });
   </script>
-  
-  <!-- Simple script loading approach that should work with most Flutter versions -->
-  <script src="main.dart.js" type="application/javascript"></script>
 </body>
 </html>

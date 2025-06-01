@@ -19,9 +19,7 @@ class CustomNavigationBar extends StatefulWidget {
 }
 
 class _CustomNavigationBarState extends State<CustomNavigationBar> {
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  
-  void _openDrawer() {
+   void _openDrawer() {
     Scaffold.of(context).openEndDrawer();
   }
 
